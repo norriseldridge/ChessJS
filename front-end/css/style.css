@@ -19,6 +19,20 @@ h1 {
   line-height: 0.5;
 }
 
+.music-toggle {
+  display: block;
+  margin: auto;
+  width: 25px;
+  height: 25px;
+  background-image: url(/images/audio-icon.png);
+  background-size: 25px;
+  cursor: pointer;
+}
+
+.music-toggle.mute {
+  background-image: url(/images/audio-icon-mute.png);
+}
+
 .side-context {
   position: absolute;
   left: 0;

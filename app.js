@@ -10,6 +10,7 @@ app.use(express.static('front-end'))
 app.use('/images', express.static(__dirname + '/front-end/images'))
 app.use('/css', express.static(__dirname + '/front-end/css'))
 app.use('/scripts', express.static(__dirname + '/front-end/scripts'))
+app.use('/audio', express.static(__dirname + '/front-end/audio'))
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'front-end/index.html'))

@@ -1,12 +1,36 @@
 const BASE_SERVER_URL = ''
 let gameSessionId = 0
 let playerColor = undefined
+const music = new Audio('/audio/Chess.wav')
+music.volume = 0.5
+const startSound = new Audio('/audio/StartGame.mp3')
+const selectSound = new Audio('/audio/Select.mp3')
+const moveSound = new Audio('/audio/Move.mp3')
+const opponentMove = new Audio('/audio/OpponentMove.mp3')
 
 // "on load" setup
 $(() => {
+  // the html default loop sucks, this removes the "gap" that happens between plays
+  music.addEventListener('timeupdate', (e) => {
+    let buffer = .44
+    if(music.currentTime > music.duration - buffer) {
+      music.currentTime = 0
+      music.play()
+    }
+  })
+
   $('#chessboard').on('click', OnChessBoardClick)
   $('#chessboard').on('contextmenu', OnChessBoardClick)
 })
+
+function ToggleMusic() {
+  $('#music-icon').toggleClass('mute')
+  if (music.paused) {
+    music.play()
+  } else {
+    music.pause()
+  }
+}
 
 function StartNewGame() {
   // execute my post request to the backend
@@ -28,6 +52,9 @@ function StartNewGame() {
       $('#session-code')
         .append(`<p>Session Code: <span>${session.code}</span></p>`)
         .append(`<p class="subtext">Share this code with a friend to play with them online</p>`)
+
+      // Play start sound
+      startSound.play()
 
       RenderBoard(session.state.board)
       DisplayGameState()
@@ -68,6 +95,9 @@ function JoinGame() {
       $('#session-code').empty()
       $('#session-code')
         .append(`<p>Session Code: <span>${session.code}</span></p>`)
+
+      // Play start sound
+      startSound.play()
 
       RenderBoard(session.state.board)
       SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)
@@ -151,6 +181,9 @@ const onSetGameState = {
       contentType: 'application/json; charset=utf-8',
       data: { playerColor: playerColor },
       success: (state) => {
+        // Play opponent move sound
+        opponentMove.play()
+
         RenderBoard(state.board)
         SetGameState(GAME_STATE_SELECT_PIECE)
       },
@@ -208,6 +241,10 @@ function HandleClick_SelectPiece() {
   
   // simple validation
   if (IsSquareDataAValidSelection(pieceData)) {
+
+    // Play select sound
+    selectSound.play()
+
     console.log(`Selected Piece at: ${selectedSquare.row}, ${selectedSquare.column}. This piece is a ${pieceData.color} ${pieceData.piece}.`)
     currentSelectedPiece = {selectedSquare, pieceData}
     tileElement.toggleClass('selected')
@@ -244,6 +281,9 @@ function HandleClick_SelectDestination() {
     contentType: 'application/json; charset=utf-8',
     data: JSON.stringify(requestData),
     success: (state) => {
+      // Play move sound
+      moveSound.play()
+
       RenderBoard(state.board)
       SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)
     },
