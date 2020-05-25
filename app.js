@@ -8,6 +8,7 @@ app.use(cors({ origin: '*' }))
 app.use(express.json())
 app.use(express.static('front-end'))
 app.use('/images', express.static(__dirname + '/front-end/images'))
+app.use('/css', express.static(__dirname + '/front-end/css'))
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'front-end/index.html'))
