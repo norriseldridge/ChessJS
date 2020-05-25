@@ -19,9 +19,23 @@ $(() => {
     }
   })
 
+  $('#music-volume').on('input', OnMusicVolumeChange)
+  $('#music-volume').on('change', OnMusicVolumeChange)
+
   $('#chessboard').on('click', OnChessBoardClick)
   $('#chessboard').on('contextmenu', OnChessBoardClick)
 })
+
+function OnMusicVolumeChange(e) {
+  const newVolume = $(e.target).val() / 100
+  music.volume = newVolume
+
+  const newFXVolume = newVolume * 1.1 // 10% louder
+  startSound.volume = newFXVolume
+  selectSound.volume = newFXVolume
+  moveSound.volume = newFXVolume
+  opponentMove.volume = newFXVolume
+}
 
 function ToggleMusic() {
   $('#music-icon').toggleClass('mute')
@@ -30,6 +44,14 @@ function ToggleMusic() {
   } else {
     music.pause()
   }
+}
+
+function ShowHowTo() {
+  $('#how-to').show()
+}
+
+function HideHowTo() {
+  $('#how-to').hide()
 }
 
 function StartNewGame() {
@@ -267,6 +289,11 @@ function HandleClick_SelectDestination() {
   const columnIndex = row.children().index(tileElement)
   const targetDestination = { row: rowIndex, column: columnIndex }
 
+  if (currentSelectedPiece.selectedSquare.row === targetDestination.row && currentSelectedPiece.selectedSquare.column === targetDestination.column) {
+    UnselectPiece()
+    return
+  }
+
   // make a move request to the server
   const requestData = {
     currentSelectedPiece,
@@ -295,17 +322,22 @@ function HandleClick_SelectDestination() {
 }
 
 function HandleRightClick_CurrentGameState() {
-  console.log('right click!')
   switch (gameState) {
     case GAME_STATE_SELECT_PIECE:
     case GAME_STATE_SELECT_DESTINATION:
-      currentSelectedPiece = {}
-      $('.selected').toggleClass('selected')
-      SetGameState(GAME_STATE_SELECT_PIECE)
+      UnselectPiece()
       break
 
     case GAME_STATE_WAIT_FOR_OPPONENT:
       console.log("Waiting for opponent... Can't make any selections or moves yet")
       break
+  }
+}
+
+function UnselectPiece() {
+  if (gameState === GAME_STATE_SELECT_PIECE || gameState === GAME_STATE_SELECT_DESTINATION) {
+    currentSelectedPiece = {}
+    $('.selected').toggleClass('selected')
+    SetGameState(GAME_STATE_SELECT_PIECE)
   }
 }

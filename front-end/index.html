@@ -19,15 +19,43 @@
       </div>
       <div id="session-code"></div>
       <div id="player"></div>
-      <a class="button" target="_blank" href="https://github.com/norriseldridge/ChessJS">View on GitHub</a>
+      <div class="button" onclick="ShowHowTo()">How to Play</div>
       
-      <div id="music-icon" class="music-toggle mute" onclick="ToggleMusic()"></div>
+      <div id="music-options">
+        <div id="music-icon" class="music-toggle mute" onclick="ToggleMusic()"></div>
+        <input type="range" min="1" max="100" value="50" class="slider" id="music-volume">
+      </div>
+
+      <a id="github-link" class="button" target="_blank" href="https://github.com/norriseldridge/ChessJS">View on GitHub</a>
     </div>
     
     <div class="main-context">
       <p id="game-state"></p>
       <div id="chessboard" style="display: none;"></div>
       <p id="additional-message"></p>
+    </div>
+
+    <div id="how-to" style="display: none;" onclick="HideHowTo()">
+      <div>
+        <h1>How to Play</h1>
+        <ul>
+          <li>
+            <h2>Select Piece</h2>
+            <ul class="circle-list">
+              <li>Left click to make a selection, left click it again to undo that selection</li>
+              <li>Right click anywhere on the board will also unselect</li>
+            </ul>
+          </li>
+          <li>
+            <h2>Select Destination</h2>
+            <ul class="circle-list">
+              <li>With a piece selected, left click to choose a destination</li>
+            </ul>
+          </li>
+        </ul>
+        <span class="divider" />
+        <p>Send a friend your session code to play against them online.</p>
+      </div>
     </div>
   </body>
 </html>

@@ -17,6 +17,59 @@ a {
 h1 {
   font-size: 3em;
   line-height: 0.5;
+  text-decoration: underline;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul li {
+  padding: 5px 0;
+}
+
+.circle-list {
+  list-style: circle;
+  padding-left: 25px;
+}
+
+#how-to {
+  z-index: 1000;
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(30, 30, 30, 0.25);
+  cursor: pointer;
+}
+
+#how-to div {
+  background-color: antiquewhite;
+  width: 500px;
+  padding: 50px;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgb(200, 185, 165);
+  display: block;
+  margin: 150px auto;
+}
+
+#how-to .divider {
+  display: block;
+  width: 100%;
+  border-top: 1px solid black;
+}
+
+h2 {
+  font-size: 1.15em;
+}
+
+#how-to p, #how-to li {
+  font-size: 1.15em;
+  line-height: 0.9em;
+  text-align: left;
 }
 
 .music-toggle {
@@ -31,6 +84,11 @@ h1 {
 
 .music-toggle.mute {
   background-image: url(/images/audio-icon-mute.png);
+}
+
+#music-options {
+  display: flex;
+  justify-content: space-between;
 }
 
 .side-context {
@@ -93,6 +151,18 @@ h1 {
   width: calc(100% - 10px);
   padding: 5px;
   font: inherit;
+}
+
+#github-link {
+  color: rgb(130, 20, 20);
+  background-color: rgb(236, 218, 195);
+  position: absolute;
+  bottom: 0px;
+}
+
+#github-link:hover {
+  background-color: rgb(130, 20, 20);
+  color: rgb(236, 218, 195);
 }
 
 #game-state {
