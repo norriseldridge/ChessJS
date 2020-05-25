@@ -27,6 +27,7 @@ function StartNewGame() {
       $('#session-code').empty()
       $('#session-code')
         .append(`<p>Session Code: <span>${session.code}</span></p>`)
+        .append(`<p class="subtext">Share this code with a friend to play with them online</p>`)
 
       RenderBoard(session.state.board)
       DisplayGameState()
