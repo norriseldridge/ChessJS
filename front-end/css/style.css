@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;700&display=swap');
+
+body {
+  text-align: center;
+  font-family: 'Crimson Text', serif;
+  background-color: antiquewhite;
+}
+
+h1 {
+  font-size: 3em;
+  line-height: 0.5;
+}
+
+.side-context {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0 10px;
+}
+
+.button {
+  cursor: pointer;
+  padding: 15px;
+  background-color: rgb(150, 50, 50);
+  width: 150px;
+  margin: 15px auto;
+  color: white;
+  font-size: 1.2em;
+  transition: all ease 0.2s;
+}
+
+.button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 15px rgba(30, 30, 30, 0.5);
+}
+
+#session-code, #player {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+#session-code span {
+  font-weight: bold;
+}
+
+#player span {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+#join-session-code {
+  width: calc(100% - 10px);
+  padding: 5px;
+  font: inherit;
+}
+
+#game-state {
+  font-size: 2em;
+  line-height: 1;
+}
+
+#additional-message {
+  font-size: 1.25em;
+}
+
+#chessboard {
+  width: fit-content;
+  margin: 50px auto auto auto;
+  border: double black;
+}
+
+.chessboard-row {
+  display: flex;
+}
+
+.chess-square {
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  transform-style: flat;
+  box-shadow: 0 0 0 black;
+  transition: all ease 0.05s;
+}
+
+.chess-square::before, .chess-square::after {
+  content: '';
+  display: block;
+  position: absolute;
+  z-index: -1;
+}
+
+.chess-square:hover {
+  transform: scale(1.1) translateY(-4px);
+  box-shadow: 0 20px 20px rgb(30, 30, 30);
+}
+
+.chess-square:active {
+  transform: scale(1.1);
+}
+
+.chess-piece {
+  pointer-events: none;
+  content: '';
+  display: block;
+  width: 31px;
+  height: 90px;
+  margin: -30px auto auto auto;
+  z-index: 10;
+  -webkit-filter: drop-shadow(0px 5px 5px rgb(30, 30, 30));
+  filter: drop-shadow(0px 5px 5px rgb(30, 30, 30));
+  background-size: 256px 90px;
+  background-repeat: no-repeat;
+}
+
+.white .chess-piece {
+  background-image: url(/images/chess-white.png);
+}
+
+.black .chess-piece {
+  background-image: url(/images/chess-black.png);
+}
+
+.selected .chess-piece {
+  transform: scale(1.12);
+  z-index: 1;
+  -webkit-filter: drop-shadow(0px 0px 5px yellow);
+  filter: drop-shadow(0px 0px 5px yellow);
+}
+
+.pawn {
+  background-position: 0 0;
+}
+
+.rook {
+  background-position: -38px 0;
+}
+
+.knight {
+  width: 36px;
+  background-position: -220px 0;
+}
+
+.bishop {
+  width: 36px;
+  background-position: -176px 0;
+}
+
+.queen {
+  width: 36px;
+  background-position: -82px 0;
+}
+
+.king {
+  width: 36px;
+  background-position: -130px 0;
+}
+
+.tile-white {
+  background-color: antiquewhite;
+}
+
+.tile-white:before {
+  border-image: linear-gradient(45deg, antiquewhite 0%, adjust-hue(rgb(100, 100, 100),10%) 100%);
+  border-image-slice: 1 1 0 1;
+  background-color: rgb(200, 185, 165);
+  left: -0.119em; top: 0;
+  width: .2em;
+  height: 100%;
+  transform: skewY(-45deg);
+}
+
+.tile-white:after {
+  border-image: linear-gradient(45deg, antiquewhite 0%, adjust-hue(rgb(100, 100, 100),10%) 100%);
+  border-image-slice: 1 1 0 1;
+  background-color: rgb(200, 185, 165);
+  bottom: -0.119em; right: 1px;
+  height: .2em;
+  width: 100%;
+  transform: skewX(-45deg);
+}
+
+.tile-black {
+  background-color: rgb(150, 50, 50);
+}
+
+.tile-black:before {
+  border-image: linear-gradient(45deg, antiquewhite 0%, adjust-hue(rgb(100, 100, 100),10%) 100%);
+  border-image-slice: 1 1 0 1;
+  background-color: rgb(130, 20, 20);
+  left: -0.119em; top: 0;
+  width: .2em;
+  height: 100%;
+  transform: skewY(-45deg);
+}
+
+.tile-black:after {
+  border-image: linear-gradient(45deg, antiquewhite 0%, adjust-hue(rgb(100, 100, 100),10%) 100%);
+  border-image-slice: 1 1 0 1;
+  background-color: rgb(130, 20, 20);
+  bottom: -0.119em; right: 1px;
+  height: .2em;
+  width: 100%;
+  transform: skewX(-45deg);
+}
