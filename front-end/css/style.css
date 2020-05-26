@@ -72,6 +72,34 @@ h2 {
   text-align: left;
 }
 
+#winner-background {
+  position: fixed;
+  display: block;
+  background-color: rgba(30, 30, 30, 0.25);
+  z-index: 20000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#winner-popup {
+  background-color: antiquewhite;
+  width: 500px;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgb(200, 185, 165);
+  display: block;
+  position: absolute;
+  bottom: 25px;
+  left: calc(50% - 165px);
+}
+
+#winner-text {
+  text-transform: capitalize;
+  font-size: 1.2em;
+}
+
 .music-toggle {
   display: block;
   margin: auto;

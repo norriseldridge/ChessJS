@@ -54,6 +54,20 @@ function HideHowTo() {
   $('#how-to').hide()
 }
 
+function ShowWinner(winner) {
+  $('#winner-background').show()
+
+  if (winner === playerColor) {
+    $('#winner-text').text(`You won!`)
+  } else {
+    $('#winner-text').text(`You loss...`)
+  }
+}
+
+function HideWinner() {
+  $('#winner-background').hide()
+}
+
 function StartNewGame() {
   // execute my post request to the backend
   $.ajax({
@@ -61,6 +75,7 @@ function StartNewGame() {
     contentType: 'application/json; charset=utf-8',
     url: BASE_SERVER_URL + '/api/chess/session',
     success: (session) => {
+      HideWinner()
       gameSessionId = session.id
 
       // show the player's color
@@ -105,6 +120,7 @@ function JoinGame() {
     contentType: 'application/json; charset=utf-8',
     url: BASE_SERVER_URL + '/api/chess/session/' + sessionCode,
     success: (session) => {
+      HideWinner()
       gameSessionId = session.id
 
       // show the player's color
@@ -206,11 +222,17 @@ const onSetGameState = {
         // Play opponent move sound
         opponentMove.play()
 
+        if (state.winner !== undefined) {
+          ShowWinner(state.winner)
+        }
+
         RenderBoard(state.board)
         SetGameState(GAME_STATE_SELECT_PIECE)
       },
       error: (response) => {
-        alert(response.responseText)
+        if (confirm('Your opponent is taking a while. It is possible they have left the match. Do you want to keep waiting?')) {
+          onSetGameState[GAME_STATE_WAIT_FOR_OPPONENT]()
+        }
       }
     })
   },
@@ -310,6 +332,10 @@ function HandleClick_SelectDestination() {
     success: (state) => {
       // Play move sound
       moveSound.play()
+
+      if (state.winner !== undefined) {
+        ShowWinner(state.winner)
+      }
 
       RenderBoard(state.board)
       SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)

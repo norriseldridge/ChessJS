@@ -49,6 +49,16 @@ class Chess {
     ]
     this.currentPlayer = 'white'
     this.winner = undefined // there is no winner to start
+    this.kings = {
+      white: {
+        column: 4,
+        row: 7
+      },
+      black: {
+        column: 4,
+        row: 0
+      }
+    }
   }
 
   validateMove(moveData) {
@@ -74,10 +84,29 @@ class Chess {
       return false
     }
 
+    // cache the state of the board
+    const preUpdateKings = Object.assign({}, this.kings)
+    const preUpdateState = []
+    this.board.forEach((col) => { preUpdateState.push(col.slice()) })
+
     // this is a valid move so let's execute that now
     this.updateBoard(moveData.currentSelectedPiece, moveData.targetDestination)
 
-    // TODO check for "checkmate" update: this.winner
+    // update the cached kings' locations
+    this.updateKingLocations(moveData.currentSelectedPiece, moveData.targetDestination)
+
+    // make sure I'm not putting my king into check
+    if (this.kingIsInCheck(moveData.playerColor, this.kings[moveData.playerColor]).length > 0) {
+      // put us back how we were before, fail
+      this.kings = preUpdateKings
+      this.board = preUpdateState
+      return false
+    }
+
+    // check for "checkmate"
+    if (this.checkForWinner(moveData.currentSelectedPiece)) {
+      this.winner = this.currentPlayer
+    }
 
     // update the player
     if (this.currentPlayer === 'white') {
@@ -100,7 +129,6 @@ class Chess {
 
     // you can't "attack" same color pieces
     if (targetPiece.color === piece.color) { // NOTE: targetPiece might be an empty object, this is fine and valid
-      console.error(`You can't attack the same color: ${targetPiece.color}`)
       return false
     }
 
@@ -122,6 +150,103 @@ class Chess {
     this.board[targetDestination.row][targetDestination.column] = piece
     // set the old location to empty
     this.board[selectedPiece.selectedSquare.row][selectedPiece.selectedSquare.column] = EMPTY
+  }
+
+  updateKingLocations(selectedPiece, targetDestination) {
+    if (selectedPiece.pieceData.piece === 'king') {
+      this.kings[selectedPiece.pieceData.color] = targetDestination
+    }
+  }
+
+  checkForWinner(selectedPiece) {
+    // is the opposing team's king in checkmate?
+    const opposingColor = selectedPiece.pieceData.color === 'white' ? 'black' : 'white'
+    const checkingPieces = this.kingIsInCheck(opposingColor, this.kings[opposingColor])
+    if (checkingPieces.length > 0) {
+      // can this king move anywhere to get out of check?
+      for (let moveRow = -1; moveRow <= 1; ++moveRow) {
+        for (let moveCol = -1; moveCol <= 1; ++moveCol) {
+          const escapeSqare = this.kings[opposingColor]
+          escapeSqare.column += moveCol
+          escapeSqare.row += moveRow
+
+          // if this is a valid board location
+          if (escapeSqare.column >= 0 && escapeSqare.column < 8 && escapeSqare.row >= 0 && escapeSqare.row < 8) {
+            if (this.board[escapeSqare.row][escapeSqare.column].color !== opposingColor && this.kingIsInCheck(opposingColor, escapeSqare).length === 0) {
+              return false // the king can move and escape so not checkmate
+            }
+          }
+        }
+      }
+
+      // one of the "checking pieces" can be killed
+      if (checkingPieces.some((checkingPiece) => { return this.anyOfColorReach(selectedPiece.pieceData.color, checkingPiece.selectedSquare).length > 0 })) {
+        return false
+      }
+
+      const canTeammateIntersect = () => {
+        // look at every "checking piece", determine the potentially block tiles
+        const inBetweenTiles = []
+        checkingPieces.forEach((checkingPiece) => {
+          let colDiff = checkingPiece.selectedSquare.column - this.kings[opposingColor].column
+          let rowDiff = checkingPiece.selectedSquare.row - this.kings[opposingColor].row
+          while (colDiff !== 0 && rowDiff !== 0) {
+            if (colDiff < 0) {
+              colDiff++
+            } else {
+              colDiff--
+            }
+
+            if (rowDiff < 0) {
+              rowDiff++
+            } else {
+              rowDiff--
+            }
+
+            inBetweenTiles.push({ column: checkingPiece.selectedSquare.column - colDiff, row: checkingPiece.selectedSquare.row - rowDiff })
+          }
+        })
+
+        // for every tile in between the checking piece and king, can a teammate move there and stop a check
+        return inBetweenTiles.some((inBetweenTile) => {
+          const canIntersect = this.anyOfColorReach(opposingColor, inBetweenTile).filter((intersectPice) => { return intersectPice.pieceData.piece !== 'king' })
+          return canIntersect.length > 0
+        })
+      }
+
+      if (canTeammateIntersect()) {
+        return false
+      }
+      
+      return true
+    }
+  }
+
+  kingIsInCheck(kingColor, kingLocation) {
+    const opposingColor = kingColor === 'white' ? 'black' : 'white'
+    return this.anyOfColorReach(opposingColor, kingLocation)
+  }
+
+  anyOfColorReach(color, targetDestination) {
+    // check every piece of color
+    const pieces = []
+    for (let row = 0; row < 8; ++row) {
+      for (let col = 0; col < 8; ++col) {
+        const piece = this.board[row][col]
+        if (piece.color === color && piece.piece) {
+          const currentSelectedPiece = {
+            pieceData: piece,
+            selectedSquare: { column: col, row: row }
+          }
+
+          if (this.validPieceDestination(currentSelectedPiece, targetDestination)) {
+            pieces.push(currentSelectedPiece)
+          }
+        }
+      }
+    }
+
+    return pieces
   }
 }
 
