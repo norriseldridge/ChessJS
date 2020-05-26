@@ -76,7 +76,7 @@ h2 {
   position: fixed;
   display: block;
   background-color: rgba(30, 30, 30, 0.25);
-  z-index: 20000;
+  z-index: 999;
   top: 0;
   left: 0;
   width: 100%;
@@ -98,6 +98,57 @@ h2 {
 #winner-text {
   text-transform: capitalize;
   font-size: 1.2em;
+}
+
+#pick-piece-background {
+  position: fixed;
+  display: block;
+  background-color: rgba(30, 30, 30, 0.5);
+  z-index: 999;
+  top: 0;
+  left: 200px;
+  width: calc(100% - 200px);
+  height: 100%;
+}
+
+#pick-piece-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#pick-piece {
+  background-color: antiquewhite;
+  box-shadow: 0 0 15px rgb(200, 185, 165);
+  width: fit-content;
+  height: fit-content;
+  padding: 30px;
+  font-size: 1.2em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateY(calc(-50% - 60px)) translateX(-50%);
+}
+
+#pick-piece h1 {
+  font-size: 1.5em;
+}
+
+#pick-piece ul {
+  border: 1px solid black;
+}
+
+#pick-piece li {
+  cursor: pointer;
+  border-top: 1px solid black;
+}
+
+#pick-piece li:first-child {
+  border: none;
+}
+
+#pick-piece li:hover {
+  background-color: rgb(200, 185, 165);
 }
 
 .music-toggle {

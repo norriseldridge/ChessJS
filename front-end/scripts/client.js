@@ -1,6 +1,7 @@
 const BASE_SERVER_URL = ''
 let gameSessionId = 0
 let playerColor = undefined
+let actionIndex = 0
 const music = new Audio('/audio/Chess.wav')
 music.volume = 0.5
 const startSound = new Audio('/audio/StartGame.mp3')
@@ -123,6 +124,8 @@ function JoinGame() {
       HideWinner()
       gameSessionId = session.id
 
+      actionIndex = session.state.actionIndex
+
       // show the player's color
       playerColor = session.players.length === 1 ? 'white' : 'black'
       $('#player').empty()
@@ -212,22 +215,34 @@ const onSetGameState = {
   GAME_STATE_SELECT_PIECE: () => { currentSelectedPiece = null }, // on starting the 'select state' we should clear any previous selection
   GAME_STATE_SELECT_DESTINATION: () => {},
   GAME_STATE_WAIT_FOR_OPPONENT: () => {
+    const requestData = { 
+      playerColor: playerColor, 
+      actionIndex: actionIndex 
+    }
+
     $.ajax({
       method: 'GET',
       url: BASE_SERVER_URL + '/api/chess/' + gameSessionId + '/wait-for-opponent',
       dataType: 'json',
       contentType: 'application/json; charset=utf-8',
-      data: { playerColor: playerColor },
+      data: requestData,
       success: (state) => {
-        // Play opponent move sound
-        opponentMove.play()
-
+        // always check for a winner, update index, and render board
         if (state.winner !== undefined) {
           ShowWinner(state.winner)
         }
-
+        actionIndex = state.actionIndex
         RenderBoard(state.board)
-        SetGameState(GAME_STATE_SELECT_PIECE)
+
+        // if it is now my turn
+        if (state.currentPlayer === playerColor) {
+          // Play opponent did a move sound
+          opponentMove.play()
+          SetGameState(GAME_STATE_SELECT_PIECE)
+        } else {
+          // otherwise, it is still the opponent's turn, let's wait
+          SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)
+        }
       },
       error: (response) => {
         if (confirm('Your opponent is taking a while. It is possible they have left the match. Do you want to keep waiting?')) {
@@ -320,7 +335,8 @@ function HandleClick_SelectDestination() {
   const requestData = {
     currentSelectedPiece,
     targetDestination,
-    playerColor: playerColor
+    playerColor: playerColor,
+    actionIndex: actionIndex
   }
   
   $.ajax({
@@ -337,7 +353,12 @@ function HandleClick_SelectDestination() {
         ShowWinner(state.winner)
       }
 
+      actionIndex = state.actionIndex
+
       RenderBoard(state.board)
+
+      // did we just get a pawn to the opposite side?
+      CheckPawnReachedOppositeSide(currentSelectedPiece, targetDestination)
       SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)
     },
     error: (error) => {
@@ -366,4 +387,50 @@ function UnselectPiece() {
     $('.selected').toggleClass('selected')
     SetGameState(GAME_STATE_SELECT_PIECE)
   }
+}
+
+function CheckPawnReachedOppositeSide(currentSelectedPiece, targetDestination) {
+  if (currentSelectedPiece.pieceData.piece === 'pawn') {
+    const targetRow = currentSelectedPiece.pieceData.color === 'white' ? 0 : 7
+
+    if (targetDestination.row === targetRow) {
+      // we just reached the row we need to get a piece!
+      ShowPickPiece()
+    }
+  }
+
+  return false
+}
+
+function ShowPickPiece() {
+  $('#pick-piece-background').show()
+}
+
+function HidePickPiece() {
+  $('#pick-piece-background').hide()
+}
+
+function PickPiece(piece) {
+  HidePickPiece()
+
+  const requestData = { 
+    piece: piece,
+    playerColor: playerColor
+  }
+
+  $.ajax({
+    method: 'POST',
+    contentType: 'application/json; charset=utf-8',
+    url: BASE_SERVER_URL + '/api/chess/' + gameSessionId + '/pick',
+    dataType: 'json',
+    contentType: 'application/json; charset=utf-8',
+    data: JSON.stringify(requestData),
+    success: (state) => {
+      actionIndex = state.actionIndex
+      RenderBoard(state.board)
+    },
+    error: (response) => {
+      alert(response.responseText)
+    }
+  })
 }

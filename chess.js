@@ -14,8 +14,16 @@ const moveRequestSchema = {
     row: Joi.number().min(0).max(7).required(),
     column: Joi.number().min(0).max(7).required()
   }).required(),
+  playerColor: Joi.string().required(),
+  actionIndex: Joi.number().min(0).required()
+}
+
+const pickRequestSchema = {
+  piece: Joi.string().required(),
   playerColor: Joi.string().required()
 }
+
+const VALID_PICK_PIECES = ['queen', 'bishop', 'knight', 'rook']
 
 const CHESS_RULES = require('./chess-rules')
 
@@ -58,7 +66,8 @@ class Chess {
         column: 4,
         row: 0
       }
-    }
+    },
+    this.actionIndex = 0
   }
 
   validateMove(moveData) {
@@ -108,11 +117,14 @@ class Chess {
       this.winner = this.currentPlayer
     }
 
-    // update the player
-    if (this.currentPlayer === 'white') {
-      this.currentPlayer = 'black'
-    } else {
-      this.currentPlayer = 'white'
+    // update the action index
+    this.actionIndex++
+
+    // did a pawn make it to the other side?
+    if (!this.checkIsPawnOnOppositeSide(this.currentPlayer)) {
+      // only update the player if we've ended our turn
+      // if a pawn is on the other side, we need to pick a piece to bring in
+      this.updateCurrentPlayer()
     }
 
     return true
@@ -247,6 +259,48 @@ class Chess {
     }
 
     return pieces
+  }
+
+  checkIsPawnOnOppositeSide(color) {
+    const targetRow = color === 'white' ? 0 : 7
+    return this.board[targetRow].find((boardPiece) => { return boardPiece.piece === 'pawn' && boardPiece.color === color })
+  }
+
+  validatePiecePick(pickData) {
+    if (!Joi.validate(pickData, pickRequestSchema)) {
+      return false
+    }
+
+    // is there a pawn in the target row
+    const targetRow = pickData.playerColor === 'white' ? 0 : 7
+    const targetPiece = this.board[targetRow].find((boardPiece) => { return boardPiece.piece === 'pawn' && boardPiece.color === pickData.playerColor })
+    if (!targetPiece) {
+      return false
+    }
+
+    const targetColumn = this.board[targetRow].indexOf(targetPiece)
+
+    if (VALID_PICK_PIECES.indexOf(pickData.piece) < 0) {
+      return false // client sent invalid piece
+    }
+
+    // valid request, let's update the board
+    this.board[targetRow][targetColumn] = { color: pickData.playerColor, piece: pickData.piece }
+
+    // update the action index
+    this.actionIndex++
+
+    // this now ended our turn, next player
+    this.updateCurrentPlayer()
+    return true
+  }
+
+  updateCurrentPlayer() {
+    if (this.currentPlayer === 'white') {
+      this.currentPlayer = 'black'
+    } else {
+      this.currentPlayer = 'white'
+    }
   }
 }
 

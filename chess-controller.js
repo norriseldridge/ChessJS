@@ -63,7 +63,8 @@ module.exports = (app) => {
     let waitCount = 0
     new Promise((resolve, reject) => {
       waitInterval = setInterval(() => {
-        if (session.state.currentPlayer === req.query.playerColor) {
+        // while the action index is the same as what we have, keep waiting
+        if (session.state.actionIndex !== parseInt(req.query.actionIndex)) {
           resolve()
         }
 
@@ -78,5 +79,18 @@ module.exports = (app) => {
     }).catch(() => {
       res.status(408).send('Your opponent still has not made a move, it is possible they have left the match')
     })
+  })
+
+  app.post('/api/chess/:sessionid/pick', (req, res) => {
+    const session = sessions.find((temp) => { return temp.id === parseInt(req.params.sessionid) })
+    if (!session) {
+      return res.status(404).send('Could not find a session with the provided id.')
+    }
+
+    if (!session.state.validatePiecePick(req.body)) {
+      return res.status(400).send('This is not a valid pick!')
+    }
+
+    res.send(session.state)
   })
 }
