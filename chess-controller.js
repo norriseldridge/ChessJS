@@ -1,4 +1,4 @@
-const sessions = []
+const sessions = {}
 const Chess = require('./chess')
 
 module.exports = (app) => {
@@ -7,23 +7,31 @@ module.exports = (app) => {
     sessionCode = sessionCode.substring(sessionCode.length - 4)
     // create a new session
     const session = {
-      id: sessions.length + 1,
       state: new Chess(),
       code: sessionCode,
-      players: [0]
+      players: []
     }
-    sessions.push(session)
+
+    // add a unique player id
+    let playerUID = Date.now().toString(36)
+    playerUID = playerUID.substring(playerUID.length - 8)
+    session.players.push(playerUID)
+
+    sessions[sessionCode] = session
     res.send(session)
   })
 
   app.get('/api/chess/session/:sessionCode', (req, res) => {
-    const session = sessions.find((temp) => { return temp.code === req.params.sessionCode })
+    const session = sessions[req.params.sessionCode]
     if (!session) {
       return res.status(404).send('Could not find a session with the provided session code.')
     }
 
     if (session.players.length <= 1) {
-      session.players.push(session.players.length)
+      // add a unique player id
+      let playerUID = Date.now().toString(36)
+      playerUID = playerUID.substring(playerUID.length - 8)
+      session.players.push(playerUID)
     } else {
       return res.status(400).send('You cannot join this session, 2 players are already here.')
     }
@@ -31,17 +39,17 @@ module.exports = (app) => {
     res.send(session)
   })
 
-  app.get('/api/chess/:sessionid', (req, res) => {
-    const session = sessions.find((temp) => { return temp.id === parseInt(req.params.sessionid) })
+  app.get('/api/chess/:sessionCode', (req, res) => {
+    const session = sessions[req.params.sessionCode]
     if (!session) {
       return res.status(404).send('Could not find a session with the provided id.')
     }
 
-    res.send(session.state)
+    res.send(session)
   })
 
-  app.post('/api/chess/:sessionid', (req, res) => {
-    const session = sessions.find((temp) => { return temp.id === parseInt(req.params.sessionid) })
+  app.post('/api/chess/:sessionCode', (req, res) => {
+    const session = sessions[req.params.sessionCode]
     if (!session) {
       return res.status(404).send('Could not find a session with the provided id.')
     }
@@ -53,8 +61,8 @@ module.exports = (app) => {
     res.send(session.state)
   })
 
-  app.get('/api/chess/:sessionid/wait-for-opponent', (req, res) => {
-    const session = sessions.find((temp) => { return temp.id === parseInt(req.params.sessionid) })
+  app.get('/api/chess/:sessionCode/wait-for-opponent', (req, res) => {
+    const session = sessions[req.params.sessionCode]
     if (!session) {
       return res.status(404).send('Could not find a session with the provided id.')
     }
@@ -81,8 +89,8 @@ module.exports = (app) => {
     })
   })
 
-  app.post('/api/chess/:sessionid/pick', (req, res) => {
-    const session = sessions.find((temp) => { return temp.id === parseInt(req.params.sessionid) })
+  app.post('/api/chess/:sessionCode/pick', (req, res) => {
+    const session = sessions[req.params.sessionCode]
     if (!session) {
       return res.status(404).send('Could not find a session with the provided id.')
     }

@@ -1,5 +1,6 @@
 const BASE_SERVER_URL = ''
-let gameSessionId = 0
+let gameSessionCode = ''
+let playerUID = ''
 let playerColor = undefined
 let actionIndex = 0
 const music = new Audio('/audio/Chess.wav')
@@ -25,6 +26,57 @@ $(() => {
 
   $('#chessboard').on('click', OnChessBoardClick)
   $('#chessboard').on('contextmenu', OnChessBoardClick)
+
+  // did we refresh the window and have a session cookie?
+  const cachedSessionCode = getCookie('gameSessionCode')
+  const cachedPlayerUID = getCookie('playerUID')
+  if (cachedSessionCode) {
+    // get the state
+    $.ajax({
+      crossDomain: true,
+      type: 'GET',
+      method: 'GET',
+      contentType: 'application/json; charset=utf-8',
+      url: BASE_SERVER_URL + '/api/chess/' + cachedSessionCode,
+      success: (session) => {
+        HideWinner()
+        gameSessionCode = session.code
+
+        if (session.players.indexOf(cachedPlayerUID) >= 0) {
+          playerUID = cachedPlayerUID
+        } else {
+          console.error('Something went wrong. Please start or join a new game.')
+        }
+  
+        actionIndex = session.state.actionIndex
+  
+        // show the player's color
+        playerColor = session.players.indexOf(playerUID) === 0 ? 'white' : 'black'
+        $('#player').empty()
+        $('#player')
+          .append(`<p>You are: <span>${playerColor}</span></p>`)
+  
+        // show the session code
+        $('#session-code').empty()
+        $('#session-code')
+          .append(`<p>Session Code: <span>${session.code}</span></p>`)
+  
+        // Play start sound
+        startSound.play()
+  
+        RenderBoard(session.state.board)
+
+        if (session.state.currentPlayer === playerColor) {
+          SetGameState(GAME_STATE_SELECT_PIECE)
+        } else {
+          SetGameState(GAME_STATE_WAIT_FOR_OPPONENT)
+        }
+      },
+      error: (response) => {
+        console.log(response)
+      }
+    })
+  }
 })
 
 function OnMusicVolumeChange(e) {
@@ -77,10 +129,13 @@ function StartNewGame() {
     url: BASE_SERVER_URL + '/api/chess/session',
     success: (session) => {
       HideWinner()
-      gameSessionId = session.id
+      gameSessionCode = session.code
+      playerUID = session.players[0]
+      setCookie('gameSessionCode', gameSessionCode, 1)
+      setCookie('playerUID', playerUID, 1)
 
       // show the player's color
-      playerColor = session.players.length === 1 ? 'white' : 'black'
+      playerColor = session.players.indexOf(playerUID) === 0 ? 'white' : 'black'
       $('#player').empty()
       $('#player')
         .append(`<p>You are: <span>${playerColor}</span></p>`)
@@ -113,7 +168,6 @@ function JoinGame() {
     return
   }
 
-  // attempt to join with session code
   $.ajax({
     crossDomain: true,
     type: 'GET',
@@ -122,12 +176,14 @@ function JoinGame() {
     url: BASE_SERVER_URL + '/api/chess/session/' + sessionCode,
     success: (session) => {
       HideWinner()
-      gameSessionId = session.id
+      gameSessionCode = session.code
+      setCookie('gameSessionCode', gameSessionCode, 1)
+      setCookie('playerUID', playerUID, 1)
 
       actionIndex = session.state.actionIndex
 
       // show the player's color
-      playerColor = session.players.length === 1 ? 'white' : 'black'
+      playerColor = session.players.indexOf(playerUID) === 0 ? 'white' : 'black'
       $('#player').empty()
       $('#player')
         .append(`<p>You are: <span>${playerColor}</span></p>`)
@@ -222,7 +278,7 @@ const onSetGameState = {
 
     $.ajax({
       method: 'GET',
-      url: BASE_SERVER_URL + '/api/chess/' + gameSessionId + '/wait-for-opponent',
+      url: BASE_SERVER_URL + '/api/chess/' + gameSessionCode + '/wait-for-opponent',
       dataType: 'json',
       contentType: 'application/json; charset=utf-8',
       data: requestData,
@@ -341,7 +397,7 @@ function HandleClick_SelectDestination() {
   
   $.ajax({
     method: 'POST',
-    url: BASE_SERVER_URL + '/api/chess/' + gameSessionId,
+    url: BASE_SERVER_URL + '/api/chess/' + gameSessionCode,
     dataType: 'json',
     contentType: 'application/json; charset=utf-8',
     data: JSON.stringify(requestData),
@@ -421,7 +477,7 @@ function PickPiece(piece) {
   $.ajax({
     method: 'POST',
     contentType: 'application/json; charset=utf-8',
-    url: BASE_SERVER_URL + '/api/chess/' + gameSessionId + '/pick',
+    url: BASE_SERVER_URL + '/api/chess/' + gameSessionCode + '/pick',
     dataType: 'json',
     contentType: 'application/json; charset=utf-8',
     data: JSON.stringify(requestData),
@@ -433,4 +489,27 @@ function PickPiece(piece) {
       alert(response.responseText)
     }
   })
+}
+
+function setCookie(cname, cvalue, exdays) {
+  const d = new Date()
+  d.setTime(d.getTime() + (exdays*24*60*60*1000))
+  const expires = "expires=" + d.toUTCString()
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/"
+}
+
+function getCookie(cname) {
+  const name = cname + "="
+  const decodedCookie = decodeURIComponent(document.cookie)
+  const ca = decodedCookie.split(';')
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1)
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length)
+    }
+  }
+  return ""
 }
